@@ -701,9 +701,11 @@ footer .logo img{height:16px}
 
   /* 구글 시트 연동: Apps Script 웹 앱 URL을 넣으면 신청서가 시트에 쌓여요 */
   const SHEET_ENDPOINT='https://script.google.com/macros/s/AKfycbxC7s_G449zSJ_ROP3KtaZkSnHV-v6rDgXSh7klXZsWI11a3PT-pahyex5z4YkqBK9x/exec';
+  const utmQ=new URLSearchParams(location.search);
+  const utmVals=Object.fromEntries(['utm_source','utm_medium','utm_campaign','utm_term','utm_content'].map(k=>[k,utmQ.get(k)||'']));
   async function sendToSheet(d){
     if(!SHEET_ENDPOINT) return false;
-    const body=new URLSearchParams({name:d.name,age:String(d.age),phone:d.phone,area:d.area,stage:d.stage,reason:d.reason,experience:d.experience,strength:d.strength,schedule:d.schedule.join(', '),agreed:String(d.agreed),source:(()=>{try{const q=new URLSearchParams(location.search);return q.get('utm_source')?[q.get('utm_source'),q.get('utm_medium'),q.get('utm_campaign')].filter(Boolean).join(' / '):(document.referrer?new URL(document.referrer).hostname:'직접 접속')}catch(e){return ''}})(),website:($('f-website')||{}).value||''});
+    const body=new URLSearchParams({name:d.name,age:String(d.age),phone:d.phone,area:d.area,stage:d.stage,reason:d.reason,experience:d.experience,strength:d.strength,schedule:d.schedule.join(', '),agreed:String(d.agreed),source:(()=>{try{return utmVals.utm_source?Object.values(utmVals).filter(Boolean).join(' / '):(document.referrer?new URL(document.referrer).hostname:'직접 접속')}catch(e){return ''}})(),website:($('f-website')||{}).value||'',...utmVals});
     await fetch(SHEET_ENDPOINT,{method:'POST',mode:'no-cors',body});
     return true;
   }
